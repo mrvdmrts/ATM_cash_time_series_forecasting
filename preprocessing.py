@@ -24,3 +24,6 @@ data['CashOut'] = data['CashOut'].fillna(data.groupby(['month', 'week_of_month']
 # set Date column as index
 data = data.set_index('Date')
 
+# train and test split
+train_df = data['2016-01-01':'2019-03-01']
+test_df = data['2019-03-01':'2019-03-31']
