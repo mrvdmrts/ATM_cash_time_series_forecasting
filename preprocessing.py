@@ -1,5 +1,6 @@
 # import libraries
 import pandas as pd
+import datetime
 
 # import dataset
 data = pd.read_csv("../Arute_case/ds_exercise_data.csv")
@@ -11,7 +12,13 @@ data['month'] = data['Date'].dt.month
 data['year'] = data['Date'].dt.year
 
 # fillna with mean of the month
-data['CashIn'] = data['CashIn'].fillna(data.groupby(['year', 'month'])['CashIn'].transform('mean'))
-data['CashOut'] = data['CashOut'].fillna(data.groupby(['year', 'month'])['CashOut'].transform('mean'))
+#data['CashIn'] = data['CashIn'].fillna(data.groupby(['year', 'month'])['CashIn'].transform('mean'))
+#data['CashOut'] = data['CashOut'].fillna(data.groupby(['year', 'month'])['CashOut'].transform('mean'))
 
-print(data)
+#fillna with mean of the week
+data['week_of_month'] = (data['day']- 1) // 7 +1
+data['CashIn'] = data['CashIn'].fillna(data.groupby(['month', 'day'])['CashIn'].transform('mean'))
+data['CashOut'] = data['CashOut'].fillna(data.groupby(['month', 'day'])['CashOut'].transform('mean'))
+
+print(data[data['year']==2016])
+
