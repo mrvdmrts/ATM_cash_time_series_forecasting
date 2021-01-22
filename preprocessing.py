@@ -10,5 +10,8 @@ data['day'] = data['Date'].dt.day
 data['month'] = data['Date'].dt.month
 data['year'] = data['Date'].dt.year
 
+# fillna with mean of the month
+data['CashIn'] = data['CashIn'].fillna(data.groupby(['year', 'month'])['CashIn'].transform('mean'))
+data['CashOut'] = data['CashOut'].fillna(data.groupby(['year', 'month'])['CashOut'].transform('mean'))
 
-print(data.head())
+print(data)
