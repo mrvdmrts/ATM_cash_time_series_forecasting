@@ -34,19 +34,6 @@ def fillna_with_mean(df):
     df.loc[(df['CashIn'].isnull()), 'CashIn'] = mean
     return df
 
-
-def train_test_split(df):
-    """
-    Splitting train and test data
-    :param df: preprocessed dataframe
-    :return: train and test dataframes
-    """
-    df = df.set_index('Date')
-    train_df = df['2016-01-01':'2019-03-01']
-    test_df = df['2019-03-01':'2019-03-31']
-    return train_df, test_df
-
-
 def add_holiday(df):
     """
     :param df: pandas dataframe
