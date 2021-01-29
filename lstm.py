@@ -41,16 +41,6 @@ def LSTM(df, feature):
     lstm_model.compile(optimizer='adam', loss='mse')
     lstm_model.summary()
 
-
-def plot_loss_history(model):
-    losses = model.history.history['loss']
-    plt.figure(figsize=(12, 4))
-    plt.xticks(np.arange(0, 21, 1))
-    plt.plot(range(len(losses)), losses)
-    plt.show()
-
-
-def predictions():
     lstm_predictions_scaled = list()
 
     batch = scaled_train_data[-n_input:]
@@ -60,3 +50,21 @@ def predictions():
         lstm_pred = lstm_model.predict(current_batch)[0]
         lstm_predictions_scaled.append(lstm_pred)
         current_batch = np.append(current_batch[:, 1:, :], [[lstm_pred]], axis=1)
+    lstm_predictions = scaler.inverse_transform(lstm_predictions_scaled)
+    test_df['LSTM_Predictions'] = lstm_predictions
+    test_df['CashIn'].plot(figsize=(16, 5), legend=True)
+    test_df['LSTM_Predictions'].plot(legend=True)
+    plt.show()
+
+    lstm_rmse_error = rmse(test_df['CashIn'].values.astype(int), test_df["LSTM_Predictions"].values)
+    lstm_mse_error = lstm_rmse_error ** 2
+    mean_value = df['CashIn'].mean()
+    print(f'MSE Error: {lstm_mse_error}\nRMSE Error: {lstm_rmse_error}\nMean: {mean_value}')
+
+
+def plot_loss_history(model):
+    losses = model.history.history['loss']
+    plt.figure(figsize=(12, 4))
+    plt.xticks(np.arange(0, 21, 1))
+    plt.plot(range(len(losses)), losses)
+    plt.show()
