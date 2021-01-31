@@ -15,7 +15,7 @@ df = preprocessing.fillna_with_mean(df)
 # CashIn
 scaler = MinMaxScaler(feature_range=(0, 1))
 
-prediction, actual = model.LSTM_model(df, 'CashIn', scaler, window_size=365)
+prediction, actual = model.LSTM_model(df, 'CashIn', scaler,train_size=0.6, window_size=365)
 
 result = pd.concat([pd.DataFrame(scaler.inverse_transform(prediction[:, 0].reshape(1, -1)).T),
                     pd.DataFrame(scaler.inverse_transform(actual.reshape(1, -1))).T],
