@@ -2,42 +2,67 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from keras.models import Sequential
-from keras.layers import Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
-from keras.layers import Dropout
+from tensorflow.keras.layers import Dropout
 
 
-def scale_data(df):
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled = scaler.fit_transform(df)
-    return scaled
+def train_test_split(df, TRAIN_SIZE=0.60):
+    train_size = int(len(df) * TRAIN_SIZE)
+    test_size = len(df) - train_size
+    train, test = df[0:train_size, :], df[train_size:len(df), :]
+    return train, test
 
 
-def train_test_split(df):
-    """
-    Splitting train and test data
-    :param df: preprocessed dataframe
-    :return: train and test dataframes
-    """
-    df = df.set_index('Date')
-    train_df = df['2016-01-01':'2019-03-01']
-    test_df = df['2019-03-01':'2019-03-31']
-    train_df.reset_index(level='Date')
-    test_df.reset_index(level='Date')
-    return train_df['CashIn'], test_df['CashIn']
+def create_dataset(df, window_size=1):
+    data_X, data_Y = [], []
+    for i in range(len(df) - window_size - 1):
+        a = df[i:(i + window_size), 0]
+        data_X.append(a)
+        data_Y.append(df[i + window_size, 0])
+    return np.array(data_X), np.array(data_Y)
 
 
-def LSTM(data):
-    # data = df.iloc[:, 1:2].values
-    # train_df, test_df = train_test_split(data[['Date', feature]])
-    scaled_train = scale_data(data)
-    features_set = []
-    labels = []
-    for i in range(60, len(scaled_train)):
-        features_set.append(scaled_train[i - 60:i, 0])
-        labels.append(scaled_train[i, 0])
-    features_set, labels = np.array(features_set), np.array(labels)
-    features_set = np.reshape(features_set, (features_set.shape[0], features_set.shape[1], 1))
+from tensorflow.keras.layers import Input
+
+
+def fit_model(train_X, train_Y, window_size=1):
     model = Sequential()
-    model.add(LSTM(50, (features_set.shape[1], 1)))
+    model.add(LSTM(128,activation='relu', input_shape=(1, window_size)))
+    model.add(Dense(1))
+    model.add(Dropout(0.5))
+    model.compile(loss="mean_squared_error",
+                  optimizer="adam")
+    model.fit(train_X,
+              train_Y,
+              epochs=100,
+              batch_size=32,
+              verbose=2)
+    return model
+
+
+def LSTM_model(df, feature, scaler):
+    df = df[str(feature)]
+    values = df.values.reshape(-1, 1)
+    values = values.astype('float32')
+    scaled_data = scaler.fit_transform(values)
+    train, test = train_test_split(scaled_data, 0.6)
+    train_X, train_Y = create_dataset(train, window_size=365)
+    test_X, test_Y = create_dataset(test, window_size=365)
+    train_X = np.reshape(train_X, (train_X.shape[0], 1, train_X.shape[1]))
+    test_X = np.reshape(test_X, (test_X.shape[0], 1, test_X.shape[1]))
+    lstm_model = fit_model(train_X, train_Y, window_size=365)
+    prediction = scaler.inverse_transform(lstm_model.predict(test_X))
+    actual = scaler.inverse_transform(test_Y.reshape(1, -1))
+    return prediction, actual
+
+
+def plot(predict, actual):
+    plt.plot(predict)
+    plt.plot(actual)
+    plt.title('final model ')
+    plt.ylabel('prediction')
+    plt.xlabel('actual')
+    plt.legend(['pre', 'act'], loc='upper left')
+    plt.show()
