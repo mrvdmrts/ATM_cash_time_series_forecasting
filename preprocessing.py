@@ -24,6 +24,7 @@ def fillna_with_mean(df):
         :param df: dataframe
         :return: dataframe
     """
+    #CashIn
     month = df.iloc[(df['CashIn'].isnull()).values, df.columns.get_indexer(['month'])].values.tolist()
     day = df.iloc[(df['CashIn'].isnull()).values, df.columns.get_indexer(['day'])].values.tolist()
     mean = []
@@ -32,6 +33,15 @@ def fillna_with_mean(df):
             df.loc[((df.day == day[i][0]) & (df.month == month[i][0]) & (df.CashIn.notnull())), 'CashIn'].mean())
 
     df.loc[(df['CashIn'].isnull()), 'CashIn'] = mean
+    #CashOut
+    month = df.iloc[(df['CashOut'].isnull()).values, df.columns.get_indexer(['month'])].values.tolist()
+    day = df.iloc[(df['CashOut'].isnull()).values, df.columns.get_indexer(['day'])].values.tolist()
+    mean = []
+    for i in range(0, len(month)):
+        mean.append(
+            df.loc[((df.day == day[i][0]) & (df.month == month[i][0]) & (df.CashIn.notnull())), 'CashOut'].mean())
+
+    df.loc[(df['CashOut'].isnull()), 'CashOut'] = mean
     return df
 
 def add_holiday(df):
