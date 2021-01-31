@@ -8,7 +8,7 @@ from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dropout
 
 
-def train_test_split(df, TRAIN_SIZE=0.60):
+def train_test_split(df, TRAIN_SIZE):
     train_size = int(len(df) * TRAIN_SIZE)
     test_size = len(df) - train_size
     train, test = df[0:train_size, :], df[train_size:len(df), :]
@@ -29,30 +29,32 @@ from tensorflow.keras.layers import Input
 
 def fit_model(train_X, train_Y, window_size=1):
     model = Sequential()
-    model.add(LSTM(128,activation='relu', input_shape=(1, window_size)))
-    model.add(Dense(1))
-    model.add(Dropout(0.5))
-    model.compile(loss="mean_squared_error",
-                  optimizer="adam")
-    model.fit(train_X,
-              train_Y,
-              epochs=100,
-              batch_size=32,
-              verbose=2)
+    model.add(LSTM(10, input_shape=(1, window_size)))
+    model.add(Dense(1, activation='linear'))
+    model.compile(loss="mse",
+                  optimizer="adam"
+
+                  )
+    history = model.fit(train_X,
+                        train_Y,
+                        epochs=80,
+                        batch_size=2,
+                        verbose=2, shuffle=False)
+
     return model
 
 
-def LSTM_model(df, feature, scaler):
+def LSTM_model(df, feature, scaler,window_size):
     df = df[str(feature)]
     values = df.values.reshape(-1, 1)
     values = values.astype('float32')
     scaled_data = scaler.fit_transform(values)
     train, test = train_test_split(scaled_data, 0.6)
-    train_X, train_Y = create_dataset(train, window_size=365)
-    test_X, test_Y = create_dataset(test, window_size=365)
+    train_X, train_Y = create_dataset(train, window_size=window_size)
+    test_X, test_Y = create_dataset(test, window_size=window_size)
     train_X = np.reshape(train_X, (train_X.shape[0], 1, train_X.shape[1]))
     test_X = np.reshape(test_X, (test_X.shape[0], 1, test_X.shape[1]))
-    lstm_model = fit_model(train_X, train_Y, window_size=365)
+    lstm_model = fit_model(train_X, train_Y, window_size=window_size)
     prediction = scaler.inverse_transform(lstm_model.predict(test_X))
     actual = scaler.inverse_transform(test_Y.reshape(1, -1))
     return prediction, actual

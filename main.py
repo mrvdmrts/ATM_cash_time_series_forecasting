@@ -15,13 +15,14 @@ df = preprocessing.fillna_with_mean(df)
 # CashIn
 scaler = MinMaxScaler(feature_range=(0, 1))
 
-prediction, actual = model.LSTM_model(df, 'CashIn', scaler)
+prediction, actual = model.LSTM_model(df, 'CashIn', scaler, window_size=365)
 
-result = pd.concat([pd.DataFrame(prediction[:, 0]), pd.DataFrame(scaler.inverse_transform(actual.reshape(1, -1))).T],
+result = pd.concat([pd.DataFrame(scaler.inverse_transform(prediction[:, 0].reshape(1, -1)).T),
+                    pd.DataFrame(scaler.inverse_transform(actual.reshape(1, -1))).T],
+
                    axis=1)
 result.columns = ['predicted', 'actual']
-result['diff'] = result['predicted'] - result['actual']
 
 print(result)
 
-model.plot(result['predicted'].round(2), result['actual'].round(2))
+model.plot(result['predicted'], result['actual'])
