@@ -30,7 +30,7 @@ from tensorflow.keras.layers import Input
 def fit_model(train_X, train_Y, window_size=1):
     model = Sequential()
     model.add(LSTM(10, input_shape=(1, window_size)))
-    model.add(Dense(1, activation='linear'))
+    model.add(Dense(1, activation='relu'))
     model.compile(loss="mse",
                   optimizer="adam"
 
@@ -44,12 +44,12 @@ def fit_model(train_X, train_Y, window_size=1):
     return model
 
 
-def LSTM_model(df, feature, scaler,window_size):
+def LSTM_model(df, feature, scaler,train_size,window_size):
     df = df[str(feature)]
     values = df.values.reshape(-1, 1)
     values = values.astype('float32')
     scaled_data = scaler.fit_transform(values)
-    train, test = train_test_split(scaled_data, 0.6)
+    train, test = train_test_split(scaled_data, train_size)
     train_X, train_Y = create_dataset(train, window_size=window_size)
     test_X, test_Y = create_dataset(test, window_size=window_size)
     train_X = np.reshape(train_X, (train_X.shape[0], 1, train_X.shape[1]))
